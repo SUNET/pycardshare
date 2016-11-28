@@ -5,7 +5,6 @@ from distutils import versionpredicate
 
 here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, 'README.rst')).read()
-NEWS = open(os.path.join(here, 'NEWS.txt')).read()
 
 
 version = '0.1.0'
@@ -30,14 +29,13 @@ setup(name='pycardshare',
     setup_requires=['nose>=1.0'],
     tests_require=['nose>=1.0', 'mock'],
     test_suite="nose.collector",
-    package_dir = {'': 'src'},
+    package_dir = {'': '.'},
     include_package_data=True,
     package_data = {
     },
     zip_safe=False,
     install_requires=install_requires,
     requires=install_requires,
-    extras_require=extras_require,
     entry_points={
           'console_scripts': ['cardshare=cardshare.tools:cardshare']
     },
