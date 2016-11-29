@@ -37,6 +37,6 @@ setup(name='pycardshare',
     install_requires=install_requires,
     requires=install_requires,
     entry_points={
-          'console_scripts': ['cardshare=cardshare.tools:cardshare']
+          'console_scripts': ['cardshare=cardshare.tools:cardshare', 'keyshare=cardshare.tools:keyshare']
     },
 )

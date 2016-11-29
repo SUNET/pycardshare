@@ -1,1 +1,1 @@
-from mc import *
+from memcard import *
