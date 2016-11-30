@@ -8,6 +8,8 @@ import tempfile
 import subprocess
 import random
 import string
+import base64
+import re
 
 __usage__ = dict(
     cardshare="""
@@ -65,22 +67,43 @@ def write_share(share, threshold, total):
     packet = struct.pack("6B%ds" % len(rest), 0xff, 0x01, n, threshold, total, len(rest), rest)
     nbytes = 8 + len(rest)
     raw_input("Insert an empty card for secret %d and hit enter: " % n)
-    with memcard() as card:
-        card.write(0x20, packet)
+    if os.environ.get("CARD") == "console":
+        print "Card %d contents: %s" % (n, base64.b64encode(packet))
+    else:
+        with memcard() as card:
+            card.write(0x20, packet)
     return n, nbytes
 
 
 def read_share(msg):
     raw_input(msg)
-    with memcard() as card:
-        header = card.read(0x20, 6)
-        (m1, m2, n, threshold, total, nbytes) = header
+
+    if os.environ.get("CARD") == "console":
+        data = raw_input("Paste base64 encoded data: ")
+        decoded_data = base64.b64decode(data)
+        header_ch = list(decoded_data)
+        header_str = re.split(".", decoded_data, 6)
+        m1		= ord(header_ch[0])
+        m2		= ord(header_ch[1])
+        n		= ord(header_ch[2])
+        threshold	= ord(header_ch[3])
+        total		= ord(header_ch[4])
+        nbytes		= ord(header_ch[5])
+        secret		= header_str[6]
         if m1 != 0xff or m2 != 0x01:
             raise ValueError("This does not appear to be a valid card")
-
-        secret = card.read(0x26, nbytes)
-        share = "%d-%s" % (n, sutil.toASCIIString(secret))
+        share = "%d-%s" % (n, secret)
         return share, n, threshold, total
+    else:
+        with memcard() as card:
+            header = card.read(0x20, 6)
+            (m1, m2, n, threshold, total, nbytes) = header
+            if m1 != 0xff or m2 != 0x01:
+                raise ValueError("This does not appear to be a valid card")
+    
+            secret = card.read(0x26, nbytes)
+            share = "%d-%s" % (n, sutil.toASCIIString(secret))
+            return share, n, threshold, total
 
 
 def split(secret, threshold, total):
